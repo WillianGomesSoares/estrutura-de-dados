@@ -1,0 +1,241 @@
+1) Testar o algoritmo abaixo que converte inteiros para o formato binário e que independe do tamanho
+de um vetor. Caso necessário, altere o algoritmo para que funcione corretamente.
+
+O algoritmo converte os números inteiros para o formato binário, independente do tamanho de um vetor, pois segue um processo comum para essa conversão, que envolve empilhar os resultados das divisões sucessivas por 2 e, posteriormente, desempilhar esses valores para obter a representação binária do número.
+
+2) Escreva um algoritmo que empilhe os livros do acervo de uma biblioteca. Para cada livro, é necessário manter registro do título, autor e edição. O algoritmo deve permitir o cadastro de um novo livro enquanto o usuário não informar um código que encerre o cadastro do acervo. Escreva um procedimento que imprima o conteúdo da pilha na tela e outro que o imprima em um arquivo no modo binário. Escreva também um procedimento que leia o conteúdo do acervo no arquivo binário para a pilha e uma função que receba o título de um livro como parâmetro e que retorne quantos livros terão que ser desempilhados até que se alcance o livro desejado na pilha.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define MAX_TITULO 100
+#define MAX_AUTOR 50
+#define MAX_EDICAO 20
+
+// Estrutura para representar um livro
+typedef struct {
+    char titulo[MAX_TITULO];
+    char autor[MAX_AUTOR];
+    char edicao[MAX_EDICAO];
+} Livro;
+
+// Estrutura para um nó da pilha
+typedef struct Node {
+    Livro livro;
+    struct Node* next;
+} Node;
+
+// Estrutura da pilha
+typedef struct {
+    Node* top;
+} Pilha;
+
+// Inicializa uma pilha vazia
+void InicializarPilha(Pilha* pilha) {
+    pilha->top = NULL;
+}
+
+// Verifica se a pilha está vazia
+int PilhaVazia(Pilha* pilha) {
+    return pilha->top == NULL;
+}
+
+// Empilha um livro na pilha
+void EmpilharLivro(Pilha* pilha, Livro livro) {
+    Node* novoLivro = (Node*)malloc(sizeof(Node));
+    if (novoLivro == NULL) {
+        printf("Erro: Memória insuficiente para empilhar o livro.\n");
+        exit(1);
+    }
+
+    novoLivro->livro = livro;
+    novoLivro->next = pilha->top;
+    pilha->top = novoLivro;
+}
+
+// Desempilha um livro da pilha
+Livro DesempilharLivro(Pilha* pilha) {
+    if (PilhaVazia(pilha)) {
+        printf("Erro: A pilha de livros está vazia.\n");
+        exit(1);
+    }
+
+    Node* topo = pilha->top;
+    Livro livro = topo->livro;
+    pilha->top = topo->next;
+    free(topo);
+    return livro;
+}
+
+// Imprime o conteúdo da pilha na tela
+void ImprimirPilha(Pilha* pilha) {
+    Node* current = pilha->top;
+    printf("Conteúdo da pilha:\n");
+    while (current != NULL) {
+        printf("Título: %s\nAutor: %s\nEdição: %s\n\n", current->livro.titulo, current->livro.autor, current->livro.edicao);
+        current = current->next;
+    }
+}
+
+// Salva o conteúdo da pilha em um arquivo binário
+void SalvarPilhaEmArquivo(Pilha* pilha, const char* nomeArquivo) {
+    FILE* arquivo = fopen(nomeArquivo, "wb");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo para escrita.\n");
+        return;
+    }
+
+    Node* current = pilha->top;
+    while (current != NULL) {
+        fwrite(&(current->livro), sizeof(Livro), 1, arquivo);
+        current = current->next;
+    }
+
+    fclose(arquivo);
+}
+
+// Lê o conteúdo do arquivo binário para a pilha
+void LerArquivoParaPilha(Pilha* pilha, const char* nomeArquivo) {
+    FILE* arquivo = fopen(nomeArquivo, "rb");
+    if (arquivo == NULL) {
+        printf("Erro ao abrir o arquivo para leitura.\n");
+        return;
+    }
+
+    Livro livro;
+    while (fread(&livro, sizeof(Livro), 1, arquivo) == 1) {
+        EmpilharLivro(pilha, livro);
+    }
+
+    fclose(arquivo);
+}
+
+// Retorna o número de livros que precisam ser desempilhados para encontrar um título específico
+int LivrosParaEncontrarTitulo(Pilha* pilha, const char* tituloDesejado) {
+    int contador = 0;
+    Node* current = pilha->top;
+    while (current != NULL) {
+        contador++;
+        if (strcmp(current->livro.titulo, tituloDesejado) == 0) {
+            return contador;
+        }
+        current = current->next;
+    }
+
+    return -1; // Título não encontrado na pilha
+}
+
+int main() {
+    Pilha pilha;
+    InicializarPilha(&pilha);
+
+    int codigo = 0;
+    while (codigo != -1) {
+        printf("Digite um código para cadastrar um livro (ou -1 para encerrar): ");
+        scanf("%d", &codigo);
+
+        if (codigo == -1) {
+            break;
+        }
+
+        Livro novoLivro;
+        printf("Título: ");
+        scanf(" %[^\n]", novoLivro.titulo); // Leitura de uma linha completa, incluindo espaços
+        printf("Autor: ");
+        scanf(" %[^\n]", novoLivro.autor);
+        printf("Edição: ");
+        scanf(" %[^\n]", novoLivro.edicao);
+
+        EmpilharLivro(&pilha, novoLivro);
+    }
+
+    ImprimirPilha(&pilha);
+    SalvarPilhaEmArquivo(&pilha, "acervo.bin");
+
+    Pilha novaPilha;
+    InicializarPilha(&novaPilha);
+    LerArquivoParaPilha(&novaPilha, "acervo.bin");
+
+    char tituloDesejado[MAX_TITULO];
+    printf("Digite o título que você deseja encontrar: ");
+    scanf(" %[^\n]", tituloDesejado);
+
+    int livrosParaEncontrar = LivrosParaEncontrarTitulo(&novaPilha, tituloDesejado);
+    if (livrosParaEncontrar == -1) {
+        printf("Título não encontrado na pilha.\n");
+    } else {
+        printf("Número de livros a desempilhar para encontrar o título: %d\n", livrosParaEncontrar);
+    }
+
+    return 0;
+}
+
+
+3) Uma pilha duplamente encadeada é um tipo abstrato de dados (TAD) em que cada nodo possui um ponteiro para o nodo antecessor e outro para o nodo sucessor, como apresentado na figura abaixo. Altere a biblioteca pilha.h, para que se torne uma biblioteca para pilha duplamente encadeada. Teste a nova biblioteca para os exercícios 1 e 2. Qual(is) a(s) vantagem(ens)/ desvantagem(ens) da utilização de uma pilha duplamente encadeada?
+
+pilha.h modificada:
+
+/* Arquivo: pilha.h
+ * Biblioteca de operações para pilha implementada com alocação dinâmica de memória e encadeamento duplo.
+ */
+#define VERDADEIRO 1
+#define FALSO 0
+
+typedef struct nodo *pilha;
+typedef struct nodo *pt_nodo;
+
+typedef struct nodo {
+    elemento e;
+    pt_nodo prox;
+    pt_nodo ant;
+} tnodo;
+
+void CriarPilha(pilha *topo) {
+    *topo = NULL;
+}
+
+int PilhaVazia(pilha *topo) {
+    return (*topo == NULL);
+}
+
+void Empilhar(pilha *topo, elemento x) {
+    pt_nodo aux;
+    aux = (pt_nodo)malloc(sizeof(tnodo));
+    aux->e = x;
+    aux->prox = *topo;
+    aux->ant = NULL; // O novo topo não possui antecessor
+    if (*topo != NULL) {
+        (*topo)->ant = aux; // O nodo anterior aponta para o novo topo
+    }
+    *topo = aux;
+}
+
+elemento Desempilhar(pilha *topo) {
+    elemento x;
+    pt_nodo aux;
+    if (*topo == NULL) {
+        printf("Erro: A pilha está vazia.\n");
+        exit(1);
+    }
+    aux = *topo;
+    *topo = aux->prox;
+    if (*topo != NULL) {
+        (*topo)->ant = NULL; // O novo topo não possui antecessor
+    }
+    x = aux->e;
+    free(aux);
+    return x;
+}
+
+
+Vantagens da utilização de uma pilha duplamente encadeada:
+1- Acesso Bidirecional: Você pode navegar tanto para o elemento anterior quanto para o próximo elemento, o que pode ser útil em algumas situações.
+2- Acesso mais rápido ao elemento do meio: Como você pode navegar para frente e para trás na pilha, é possível acessar o elemento do meio da pilha com eficiência. Isso pode ser útil em algoritmos que exigem processamento de elementos em torno do centro da pilha.
+3- Desempilhamento eficiente do final: Em uma pilha simplesmente encadeada, o desempilhamento do último elemento requer percorrer toda a pilha até o último elemento. Em uma pilha duplamente encadeada, o desempilhamento do último elemento é uma operação direta, tornando-o mais eficiente.
+
+Desvantagens da utilização de uma pilha duplamente encadeada:
+1- Consumo de Memória: A pilha duplamente encadeada consome mais memória do que uma pilha encadeada
+simples devido ao armazenamento adicional do ponteiro para o nodo antecessor.
+2- Complexidade: A implementação e manipulação de uma pilha duplamente encadeada podem ser mais complexas do que uma pilha encadeada simples.
+3- Maior probabilidade de vazamentos de memória: Devido à complexidade adicional do código, há uma maior probabilidade de introduzir vazamentos de memória, onde os ponteiros não são liberados corretamente, levando a alocações de memória não utilizadas.
