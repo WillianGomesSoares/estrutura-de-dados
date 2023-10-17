@@ -1,0 +1,296 @@
+1) Escreva um algoritmo que enfileire os pedidos de uma pizzaria que realiza entregas em domicílio. Cada pedido possui: nome do cliente, telefone para contato, endereço para entrega, produto pedido, valor do produto. O algoritmo deve permitir o cadastro de um pedido enquanto o usuário não informar um código que encerre o cadastro. Escreva um procedimento que imprima o conteúdo da fila na tela e outro que o imprima em um arquivo no modo texto. Escreva também um procedimento que leia o conteúdo do arquivo texto para a fila e uma função que receba o nome de um cliente e que retorne quantos pedidos estão na frente do pedido desse cliente.
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+// Definição de uma estrutura para representar um pedido
+typedef struct Pedido {
+    char nomeCliente[100];
+    char telefoneContato[20];
+    char enderecoEntrega[200];
+    char produtoPedido[100];
+    double valorProduto;
+    struct Pedido* proximo;
+} Pedido;
+
+// Definição de uma estrutura para representar a fila de pedidos
+typedef struct Fila {
+    Pedido* inicio;
+    Pedido* fim;
+} Fila;
+
+// Função para criar uma fila vazia
+void InicializarFila(Fila* fila) {
+    fila->inicio = NULL;
+    fila->fim = NULL;
+}
+
+// Função para enfileirar um novo pedido
+void EnfileirarPedido(Fila* fila, Pedido* pedido) {
+    pedido->proximo = NULL;
+    if (fila->inicio == NULL) {
+        fila->inicio = pedido;
+    } else {
+        fila->fim->proximo = pedido;
+    }
+    fila->fim = pedido;
+}
+
+// Função para imprimir o conteúdo da fila na tela
+void ImprimirFilaNaTela(Fila* fila) {
+    Pedido* atual = fila->inicio;
+    printf("Pedidos na fila:\n");
+    int numeroPedido = 1;
+    while (atual != NULL) {
+        printf("Pedido %d:\n", numeroPedido);
+        printf("Nome do cliente: %s\n", atual->nomeCliente);
+        printf("Telefone para contato: %s\n", atual->telefoneContato);
+        printf("Endereço para entrega: %s\n", atual->enderecoEntrega);
+        printf("Produto pedido: %s\n", atual->produtoPedido);
+        printf("Valor do produto: %.2lf\n", atual->valorProduto);
+        printf("\n");
+        atual = atual->proximo;
+        numeroPedido++;
+    }
+}
+
+// Função para imprimir o conteúdo da fila em um arquivo de texto
+void ImprimirFilaEmArquivo(Fila* fila, const char* nomeArquivo) {
+    FILE* arquivo = fopen(nomeArquivo, "w");
+    if (arquivo == NULL) {
+        printf("Erro: Não foi possível abrir o arquivo para escrita.\n");
+        return;
+    }
+
+    Pedido* atual = fila->inicio;
+    int numeroPedido = 1;
+    while (atual != NULL) {
+        fprintf(arquivo, "Pedido %d:\n", numeroPedido);
+        fprintf(arquivo, "Nome do cliente: %s\n", atual->nomeCliente);
+        fprintf(arquivo, "Telefone para contato: %s\n", atual->telefoneContato);
+        fprintf(arquivo, "Endereço para entrega: %s\n", atual->enderecoEntrega);
+        fprintf(arquivo, "Produto pedido: %s\n", atual->produtoPedido);
+        fprintf(arquivo, "Valor do produto: %.2lf\n\n", atual->valorProduto);
+        atual = atual->proximo;
+        numeroPedido++;
+    }
+
+    fclose(arquivo);
+    printf("Fila impressa no arquivo '%s'.\n", nomeArquivo);
+}
+
+// Função para ler pedidos de um arquivo e adicionar à fila
+void LerPedidosDeArquivo(Fila* fila, const char* nomeArquivo) {
+    FILE* arquivo = fopen(nomeArquivo, "r");
+    if (arquivo == NULL) {
+        printf("Erro: Não foi possível abrir o arquivo para leitura.\n");
+        return;
+    }
+
+    char linha[256];
+    while (fgets(linha, sizeof(linha), arquivo) != NULL) {
+        if (strstr(linha, "Nome do cliente:") != NULL) {
+            Pedido* novoPedido = (Pedido*)malloc(sizeof(Pedido));
+            if (novoPedido == NULL) {
+                printf("Erro: Falha na alocação de memória para o pedido.\n");
+                break;
+            }
+            sscanf(linha, "Nome do cliente: %[^\n]", novoPedido->nomeCliente);
+
+            fgets(linha, sizeof(linha), arquivo);
+            sscanf(linha, "Telefone para contato: %[^\n]", novoPedido->telefoneContato);
+
+            fgets(linha, sizeof(linha), arquivo);
+            sscanf(linha, "Endereço para entrega: %[^\n]", novoPedido->enderecoEntrega);
+
+            fgets(linha, sizeof(linha), arquivo);
+            sscanf(linha, "Produto pedido: %[^\n]", novoPedido->produtoPedido);
+
+            fgets(linha, sizeof(linha), arquivo);
+            sscanf(linha, "Valor do produto: %lf", &novoPedido->valorProduto);
+
+            EnfileirarPedido(fila, novoPedido);
+        }
+    }
+    fclose(arquivo);
+    printf("Pedidos lidos do arquivo '%s' e enfileirados.\n", nomeArquivo);
+}
+
+// Função para contar quantos pedidos estão na frente de um cliente na fila
+int PedidosNaFrente(Fila* fila, const char* nomeCliente) {
+    Pedido* atual = fila->inicio;
+    int pedidosFrente = 0;
+    int encontrouCliente = 0;
+    while (atual != NULL) {
+        if (strcmp(atual->nomeCliente, nomeCliente) == 0) {
+            encontrouCliente = 1;
+            break;
+        }
+        pedidosFrente++;
+        atual = atual->proximo;
+    }
+    if (encontrouCliente) {
+        return pedidosFrente;
+    } else {
+        return -1; // Cliente não encontrado na fila
+    }
+}
+
+int main() {
+    Fila fila;
+    InicializarFila(&fila);
+
+    int opcao;
+    do {
+        printf("Escolha uma opção:\n");
+        printf("1. Novo Pedido\n");
+        printf("2. Imprimir Fila na Tela\n");
+        printf("3. Imprimir Fila em Arquivo\n");
+        printf("4. Ler Pedidos de Arquivo\n");
+        printf("5. Pedidos na Frente de um Cliente\n");
+        printf("6. Encerrar\n");
+        printf("Opção: ");
+        scanf("%d", &opcao);
+
+        if (opcao == 1) {
+            Pedido* novoPedido = (Pedido*)malloc(sizeof(Pedido));
+            if (novoPedido == NULL) {
+                printf("Erro: Falha na alocação de memória para o pedido.\n");
+                continue;
+            }
+
+            // Coleta as informações do pedido
+            printf("Nome do cliente: ");
+            scanf(" %[^\n]", novoPedido->nomeCliente);
+
+            printf("Telefone para contato: ");
+            scanf(" %[^\n]", novoPedido->telefoneContato);
+
+            printf("Endereço para entrega: ");
+            scanf(" %[^\n]", novoPedido->enderecoEntrega);
+
+            printf("Produto pedido: ");
+            scanf(" %[^\n]", novoPedido->produtoPedido);
+
+            printf("Valor do produto: ");
+            scanf("%lf", &novoPedido->valorProduto);
+
+            EnfileirarPedido(&fila, novoPedido);
+            printf("Pedido enfileirado com sucesso!\n");
+        } else if (opcao == 2) {
+            ImprimirFilaNaTela(&fila);
+        } else if (opcao == 3) {
+            char nomeArquivo[100];
+            printf("Nome do arquivo para imprimir a fila: ");
+            scanf(" %[^\n]", nomeArquivo);
+            ImprimirFilaEmArquivo(&fila, nomeArquivo);
+        } else if (opcao == 4) {
+            char nomeArquivo[100];
+            printf("Nome do arquivo para ler os pedidos: ");
+            scanf(" %[^\n]", nomeArquivo);
+            LerPedidosDeArquivo(&fila, nomeArquivo);
+        } else if (opcao == 5) {
+            char nomeCliente[100];
+            printf("Nome do cliente: ");
+            scanf(" %[^\n]", nomeCliente);
+            int pedidosFrente = PedidosNaFrente(&fila, nomeCliente);
+            if (pedidosFrente >= 0) {
+                printf("Pedidos na frente de %s: %d\n", nomeCliente, pedidosFrente);
+            } else {
+                printf("Cliente não encontrado na fila.\n");
+            }
+        } else if (opcao == 6) {
+            printf("Encerrando o programa.\n");
+        } else {
+            printf("Opção inválida. Tente novamente.\n");
+        }
+    } while (opcao != 6);
+
+    // Libere a memória alocada para os pedidos
+    Pedido* atual = fila.inicio;
+    while (atual != NULL) {
+        Pedido* proximo = atual->proximo;
+        free(atual);
+        atual = proximo;
+    }
+
+    return 0;
+}
+
+2) Uma fila duplamente encadeada é um tipo abstrato de dados (TAD) fila em que cada nodo possui um ponteiro para o nodo antecessor e outro para o nodo sucessor, como apresentado na figura abaixo. Altere a biblioteca fila.h, para que se torne uma biblioteca para fila duplamente encadeada. Teste a nova biblioteca para o exercício 1. Qual(is) a(s) vantagem(ens)/ desvantagem(ens) da utilização de uma fila duplamente encadeada?
+
+/* Arquivo: fila.h
+ * Biblioteca de operações para fila implementada com ponteiro e encadeamento duplo.
+ */
+#define VERDADEIRO 1
+#define FALSO 0
+
+typedef struct nodo *nodo_pt;
+typedef struct nodo {
+    elemento e;
+    nodo_pt prox;
+    nodo_pt ant;
+} tnodo;
+
+typedef struct tipo_fila {
+    nodo_pt inicio, fim;
+} fila;
+
+/*
+* Cria uma fila vazia.
+*/
+void CriarFila(fila *f) {
+    f->inicio = NULL;
+    f->fim = NULL;
+}
+
+/*
+* Verifica se a fila está vazia.
+*/
+int FilaVazia(fila *f) {
+    return ((f->inicio == NULL) && (f->fim == NULL));
+}
+
+/*
+* Insere um novo elemento na fila.
+*/
+void Enfileirar(fila *f, elemento x) {
+    nodo_pt p;
+    p = (nodo_pt)malloc(sizeof(tnodo));
+    p->e = x;
+    p->prox = NULL;
+    p->ant = f->fim; // O antecessor do novo nodo é o nodo atual do fim da fila
+    if (FilaVazia(f))
+        f->inicio = p;
+    else
+        f->fim->prox = p;
+    f->fim = p;
+}
+
+/*
+* Retira um elemento da fila.
+*/
+elemento Desenfileirar(fila *f) {
+    elemento x;
+    nodo_pt p;
+    x = f->inicio->e;
+    p = f->inicio;
+    if (f->inicio == f->fim)
+        f->fim = NULL;
+    else
+        f->inicio->prox->ant = NULL; // O antecessor do novo início da fila é nulo
+    f->inicio = p->prox;
+    free(p);
+    return x;
+}
+
+As vantagens de usar uma fila duplamente encadeada incluem:
+1- Facilidade de percorrer a fila em ambas as direções: Com os ponteiros para o nodo antecessor e sucessor, é mais fácil percorrer a fila em ambas as direções, o que pode ser útil em certos casos de acesso aos elementos.
+2- Operações de enfileiramento e desenfileiramento mais eficientes: Como você pode ver, ao desenfileirar um elemento, a operação não requer a atualização do ponteiro do nodo antecessor do próximo elemento. Isso pode levar a uma ligeira melhoria na eficiência das operações de enfileiramento e desenfileiramento em comparação com uma fila simplesmente encadeada.
+
+No entanto, as desvantagens incluem um aumento na complexidade da implementação e uso de memória adicional para manter o ponteiro do nodo antecessor. A escolha de usar uma fila duplamente encadeada deve ser feita com base nas necessidades específicas do seu programa e nos possíveis benefícios que ela traz para o desempenho. Em muitos casos, uma fila simplesmente encadeada é mais do que adequada.
+
+3) Testar o algoritmo abaixo que lê uma string de tamanho indeterminado a partir do teclado e a armazena em uma fila. Caso necessário, altere o algoritmo para que funcione corretamente.
+
+O código consegue armazenar uma string de tamanho indeterminado a partir do teclado em uma fila, colocando cada caractere em um espaço da fila. Este programa solicita que você digite um nome no teclado, armazena essa entrada em uma fila (uma espécie de lista de caracteres), e depois exibe esse nome na tela como uma palavra. Após a exibição, o programa aguarda por 4 segundos antes de ser encerrado.
