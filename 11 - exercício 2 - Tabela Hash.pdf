@@ -1,0 +1,67 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "lista.h"
+
+typedef struct {
+char *palavra;
+int frequencia;
+} palavra;
+
+#define MAX_ELEMENTOS 100
+
+struct tabela_hash {
+fila *fila;
+};
+
+void CriarTabelaHash (tabela_hash *t) {
+t->fila = (fila *) malloc (sizeof (fila));
+CriarFila (t->fila);
+}
+
+int InserirPalavra (tabela_hash *t, char *palavra) {
+int indice = hash (palavra) % MAX_ELEMENTOS;
+
+if (FilaVazia (t->fila[indice])) {
+Enfileirar (t->fila[indice], (elemento *) malloc (sizeof (palavra)));
+((palavra *) t->fila[indice]->inicio)->palavra = palavra;
+((palavra *) t->fila[indice]->inicio)->frequencia = 1;
+return 1;
+} else {
+if (strcmp (((palavra *) t->fila[indice]->inicio)->palavra, palavra) == 0) {
+((palavra *) t->fila[indice]->inicio)->frequencia++;
+return 0;
+} else {
+Enfileirar (t->fila[indice], (elemento *) malloc (sizeof (palavra)));
+((palavra *) t->fila[indice]->inicio)->palavra = palavra;
+((palavra *) t->fila[indice]->inicio)->frequencia = 1;
+return 1;
+}
+}
+}
+
+int BuscarPalavra (tabela_hash *t, char *palavra) {
+int indice = hash (palavra) % MAX_ELEMENTOS;
+
+while (!FilaVazia (t->fila[indice])) {
+if (strcmp (((palavra *) t->fila[indice]->inicio)->palavra, palavra) == 0)
+return ((palavra *) t->fila[indice]->inicio)->frequencia;
+else
+Desenfileirar (t->fila[indice]);
+}
+
+return 0;
+}
+
+int main (void) {
+tabela_hash t;
+CriarTabelaHash (&t);
+
+InserirPalavra (&t, "casa");
+InserirPalavra (&t, "bola");
+InserirPalavra (&t, "casa");
+
+printf ("Frequência da palavra 'casa': %d\n", BuscarPalavra (&t, "casa"));
+printf ("Frequência da palavra 'bola': %d\n", BuscarPalavra (&t, "bola"));
+
+return 0;
+}
