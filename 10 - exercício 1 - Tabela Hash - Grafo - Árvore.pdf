@@ -1,0 +1,149 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+struct Node {
+    int data;
+    struct Node* left;
+    struct Node* right;
+};
+
+struct Node* createNode(int value) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    if (newNode == NULL) {
+        printf("Erro ao alocar memória para o novo nó.\n");
+        exit(EXIT_FAILURE);
+    }
+    newNode->data = value;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
+}
+
+struct Node* insertNode(struct Node* root, int value) {
+    if (root == NULL) {
+        return createNode(value);
+    }
+    if (value < root->data) {
+        root->left = insertNode(root->left, value);
+    }
+    else if (value > root->data) {
+        root->right = insertNode(root->right, value);
+    }
+    return root;
+}
+
+struct Node* findMinValueNode(struct Node* node) {
+    struct Node* current = node;
+    while (current && current->left != NULL) {
+        current = current->left;
+    }
+    return current;
+}
+
+struct Node* deleteNode(struct Node* root, int value) {
+    if (root == NULL) {
+        return root;
+    }
+    if (value < root->data) {
+        root->left = deleteNode(root->left, value);
+    }
+    else if (value > root->data) {
+        root->right = deleteNode(root->right, value);
+    }
+    else {
+        // Caso 1: O nó não tem filhos
+        if (root->left == NULL && root->right == NULL) {
+            free(root);
+            root = NULL;
+        }
+        // Caso 2: O nó tem apenas um filho
+        else if (root->left == NULL) {
+            struct Node* temp = root;
+            root = root->right;
+            free(temp);
+        }
+        else if (root->right == NULL) {
+            struct Node* temp = root;
+            root = root->left;
+            free(temp);
+        }
+        // Caso 3: O nó tem dois filhos
+        else {
+            struct Node* temp = findMinValueNode(root->right);
+            root->data = temp->data;
+            root->right = deleteNode(root->right, temp->data);
+        }
+    }
+    return root;
+}
+
+struct Node* preOrderSearch(struct Node* root, int value) {
+    if (root == NULL) {
+        return NULL;
+    }
+    if (root->data == value) {
+        return root;
+    }
+    struct Node* leftResult = preOrderSearch(root->left, value);
+    if (leftResult != NULL) {
+        return leftResult;
+    }
+    return preOrderSearch(root->right, value);
+}
+
+void preOrderTraversal(struct Node* root) {
+    if (root != NULL) {
+        printf("%d ", root->data);
+        preOrderTraversal(root->left);
+        preOrderTraversal(root->right);
+    }
+}
+
+void freeTree(struct Node* root) {
+    if (root != NULL) {
+        freeTree(root->left);
+        freeTree(root->right);
+        free(root);
+    }
+}
+
+int main() {
+    struct Node* tree = NULL;
+
+    // Inserindo elementos na árvore
+    tree = insertNode(tree, 50);
+    tree = insertNode(tree, 30);
+    tree = insertNode(tree, 20);
+    tree = insertNode(tree, 40);
+    tree = insertNode(tree, 70);
+    tree = insertNode(tree, 60);
+    tree = insertNode(tree, 80);
+
+    // Percorrendo a árvore em pré-ordem e imprimindo os elementos
+    printf("Árvore em pré-ordem: ");
+    preOrderTraversal(tree);
+    printf("\n");
+
+    // Pesquisando elementos na árvore usando a travessia pré-ordem
+    int searchValue = 30;
+    struct Node* preOrderSearchResult = preOrderSearch(tree, searchValue);
+    if (preOrderSearchResult != NULL) {
+        printf("Valor %d encontrado na árvore usando a travessia pré-ordem.\n", searchValue);
+    } else {
+        printf("Valor %d não encontrado na árvore usando a travessia pré-ordem.\n", searchValue);
+    }
+
+    // Excluindo elementos da árvore
+    tree = deleteNode(tree, 30);
+    tree = deleteNode(tree, 50);
+
+    // Percorrendo a árvore em pré-ordem após a exclusão dos elementos
+    printf("Árvore em pré-ordem após exclusão: ");
+    preOrderTraversal(tree);
+    printf("\n");
+
+    // Liberando a memória alocada pela árvore
+    freeTree(tree);
+
+    return 0;
+}
