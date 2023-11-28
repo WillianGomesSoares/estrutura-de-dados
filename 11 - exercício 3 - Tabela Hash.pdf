@@ -1,0 +1,52 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include "lista.h"
+
+typedef struct {
+char *palavra;
+int frequencia;
+} palavra;
+
+#define MAX_ELEMENTOS 100
+
+struct tabela_hash {
+arvore *arvore;
+};
+
+void CriarTabelaHash (tabela_hash *t) {
+t->arvore = (arvore *) malloc (sizeof (arvore));
+CriarArvore (t->arvore);
+}
+
+int InserirPalavra (tabela_hash *t, char *palavra) {
+int indice = hash (palavra) % MAX_ELEMENTOS;
+
+palavra p;
+p.palavra = palavra;
+p.frequencia = 1;
+
+return Inserir (t->arvore[indice], &p);
+}
+
+int BuscarPalavra (tabela_hash *t, char *palavra) {
+int indice = hash (palavra) % MAX_ELEMENTOS;
+
+palavra p;
+p.palavra = palavra;
+
+return Pesquisar (t->arvore[indice], &p);
+}
+
+int main (void) {
+tabela_hash t;
+CriarTabelaHash (&t);
+
+InserirPalavra (&t, "casa");
+InserirPalavra (&t, "bola");
+InserirPalavra (&t, "casa");
+
+printf ("Frequência da palavra 'casa': %d\n", BuscarPalavra (&t, "casa"));
+printf ("Frequência da palavra 'bola': %d\n", BuscarPalavra (&t, "bola"));
+
+return 0;
+}
