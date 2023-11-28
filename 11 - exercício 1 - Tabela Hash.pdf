@@ -1,0 +1,76 @@
+/* Arquivo: pilha.h
+ * Biblioteca de operações para pilha implementada com alocação dinâmica de
+ * memória.
+ */
+#define VERDADEIRO 1
+#define FALSO 0
+
+typedef struct TipoNodo *pilha;
+typedef struct TipoNodo *pt_nodo;
+
+typedef struct TipoNodo {
+    elemento e;
+    pt_nodo prox;
+} nodo;
+
+/*
+ * Cria uma pilha vazia.
+ */
+void CriarPilha(pilha *p) {
+    *p = NULL;
+}
+
+/*
+ * Verifica se a pilha está vazia.
+ */
+int PilhaVazia(pilha *p) {
+    return (*p == NULL);
+}
+
+/*
+ * Empilha um novo elemento.
+ */
+void Empilhar(pilha *p, elemento *x) {
+    pt_nodo novoNodo = (pt_nodo)malloc(sizeof(nodo));
+    if (novoNodo == NULL) {
+        // Tratamento de erro: falha na alocação de memória
+        exit(EXIT_FAILURE);
+    }
+
+    novoNodo->e = *x;
+    novoNodo->prox = *p;
+    *p = novoNodo;
+}
+
+/*
+ * Desempilha o elemento do topo da pilha.
+ * A pilha não pode estar vazia.
+ */
+elemento Desempilhar(pilha *p) {
+    elemento x;
+    pt_nodo topo = *p;
+
+    if (topo == NULL) {
+        // Tratamento de erro: tentativa de desempilhar de uma pilha vazia
+        exit(EXIT_FAILURE);
+    }
+
+    *p = topo->prox;
+    x = topo->e;
+    free(topo);
+
+    return x;
+}
+
+/*
+ * Função para visualizar o elemento do topo da pilha sem removê-lo.
+ * Retorna VERDADEIRO se a pilha não estiver vazia, FALSO caso contrário.
+ */
+int TopoPilha(pilha *p, elemento *x) {
+    if (*p == NULL) {
+        return FALSO;
+    }
+
+    *x = (*p)->e;
+    return VERDADEIRO;
+}
