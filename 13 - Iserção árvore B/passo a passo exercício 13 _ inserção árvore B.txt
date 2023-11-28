@@ -1,0 +1,33 @@
+PASSOS
+1- inserir o 23 - como raiz
+2- inserir o 1 - como raiz
+3- inserir o 15 - como raiz
+4- inserir o 12 - como raiz
+5- o nó raiz atinge o número max de 4 elementos - o elemento do meio (no caso o 12) permanece como raiz
+6- o elemento 01 se torna a folha esquerda por ser mebnor que a raiz - os elementos 15 e 23 se tornam a folha direita por serem maiores que a raiz
+7- inserir o elemento 27 na folha à direita por ser maior que a raiz
+8- inserir o elemento 32 na folha à direita por ser maior que a raiz - a folha direita atinge o máximo de elementos - o elemento 23 volta para a raiz
+- o 15 que é menor que o 23 foi para uma folha à esquerda e o 27 e o 32 permaneceram na folha à direita
+9- inserir o elemento 50 na folha à direita por ser maior que os números na raiz
+10- inserir o elemento 03 na folha à esquerda por ser menor que os números na raiz
+11- inserir o elemento 43 na folha à direita por ser maior que os números na raiz - o 32 volta pra raiz pois era o número do meio
+- o 27 por ser menor que um número na raiz foi para uma folha à esquerda do 32 - os números 43 e 50 permaneceram na folha à direita
+12- inserir o elemento 42 na folha à direita por ser maior que os números na raiz
+13- inserir o elemento 02 na folha à esquerda por ser menor que os números na raiz
+14- inserir o elemento 13 na folha à direita do número 12 e à esquerda do número 23 por ser menor que 23 e maior que 12
+15- inserir o elemento 14 na folha à direita do número 12 e à esquerda do número 23 por ser menor que 23 e maior que 12
+16- inserir o elemento 11 na folha à esquerda por ser menor que os números na raiz - o 2 volta pra raiz pois era o número do meio
+- o 01 vai para a folha à esquerda por ser menor que 02 - 03 e 11 vão para a folha à direita de 02 por serem maiores que 2
+17- a raiz está com o máximo de elemento - o 12 se torna a raiz - o 02 se torna uma folha à esquerda, tendo como folhas, 1 à esquerda e 13 e 11 à direita
+- o 23 e o 32 se torna uma folha à direita da raiz tendo como folhas 13, 14, 15 à esquerda, uma folha com 27 ao meio, 42, 43 e 50 à direita
+18-  inserir o elemento 33 na folha à direita da folha 23, 32 por ser maior q 32 - a folha à direita atinge o max, o 42 sobe pra folha pai
+- o 33 se torna uma folha à direita de 32 e à esquerda de 42 e o 43 e 50 permanece na folha mais a direita
+19- o 35 é inserido na folha onde há apenas o 33
+20- o 35 é inserido na folha onde há 43 e 50
+21- o 52 é inserido na folha onde há 43, 44 e 50 - a folha atinge o max - o 44 volta para a folha pai - o 43 fica à esquerda de 44 e a direita de 42
+- 50 e 52 ficam a direita de 44
+22- a folha, 23, 32, 42 e 44 se atinge o max - 32 sobe para a raiz - 23 se torna uma folha à esquerda de 32 e aa direita de 12 - 42 e 44 permanecem na folha a direita de 32
+23- o 45 é inserido na folha onde há 50, 52
+24- o 53 é inserido na folha onde há 45, 50 e 52 - a folha atinge o max - 50 volta para a folha pai (42, 44) - 45 se torna uma folha a esquerda de 50
+- 52 e 53 permanecem na direita de 50
+25- o 46 é inserido na folha onde há apenas 45
