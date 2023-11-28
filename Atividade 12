@@ -1,0 +1,444 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+typedef struct Node {
+    int data;
+    struct Node* left;
+    struct Node* right;
+} Node;
+
+Node* createNode(int data) {
+    Node* newNode = (Node*)malloc(sizeof(Node));
+    newNode->data = data;
+    newNode->left = NULL;
+    newNode->right = NULL;
+    return newNode;
+}
+
+Node* insertNode(Node* root, int data) {
+    if (root == NULL) {
+        return createNode(data);
+    } else {
+        if (data <= root->data) {
+            root->left = insertNode(root->left, data);
+        } else {
+            root->right = insertNode(root->right, data);
+        }
+        return root;
+    }
+}
+
+Node *minValueNode( Node *node) {
+  Node *current = node;
+
+  while (current && current->left != NULL)
+    current = current->left;
+
+  return current;
+}
+
+ Node *removeNode(Node *root, int key) {
+  if (root == NULL) return root;
+
+  if (key < root->data)
+    root->left = removeNode(root->left, key);
+  else if (key > root->data)
+    root->right = removeNode(root->right, key);
+
+  else {
+    if (root->left == NULL) {
+      Node *temp = root->right;
+      free(root);
+      return temp;
+    } else if (root->right == NULL) {
+      Node *temp = root->left;
+      free(root);
+      return temp;
+    }
+
+    Node *temp = minValueNode(root->right);
+
+    root->data = temp->data;
+
+    root->right = removeNode(root->right, temp->data);
+  }
+  return root;
+}
+
+Node* searchNode(Node* root, int key) {
+    if (root == NULL || root->data == key) {
+        return root;
+    }
+
+    if (key < root->data) {
+        return searchNode(root->left, key);
+    } else {
+        return searchNode(root->right, key);
+    }
+}
+
+int isEmpty(Node* root) {
+    return root == NULL;
+}
+
+void inorderTraversal(Node* root) {
+    if (root == NULL) {
+        return;
+    }
+
+    inorderTraversal(root->left);
+    printf("%d ", root->data);
+    inorderTraversal(root->right);
+}
+
+void freeTree(Node* root) {
+    if (root == NULL) {
+        return;
+    }
+
+    freeTree(root->left);
+    freeTree(root->right);
+    free(root);
+}
+
+int max(int a, int b) {
+    //condição if else que retorna qual inteiro é maior, a se a condição for verdadeira
+    return (a > b) ? a : b;
+}
+
+int getHeight(Node* root) {
+    if (root == NULL) {
+        return 0;
+    } else {
+        int leftHeight = getHeight(root->left);
+        int rightHeight = getHeight(root->right);
+        return max(leftHeight, rightHeight) + 1;
+    }
+}
+
+int getNodeHeight(Node* root, int target) {
+    if (root == NULL) {
+        return -1; // Nó não encontrado
+    } else if (root->data == target) {
+        return 0; // Nó encontrado, altura é 0
+    } else {
+        int leftHeight = getNodeHeight(root->left, target);
+        int rightHeight = getNodeHeight(root->right, target);
+        
+        if (leftHeight == -1 && rightHeight == -1) {
+            return -1; // Nó não encontrado em nenhum dos lados
+        } else {
+            return 1 + ((leftHeight != -1) ? leftHeight : rightHeight);
+        }
+    }
+}
+
+int getNodeDepth(Node* root, int target, int depth) {
+    if (root == NULL) {
+        return -1; // Nó não encontrado
+    } else if (root->data == target) {
+        return depth; // Nó encontrado, retorna a profundidade atual
+    } else {
+        int leftDepth = getNodeDepth(root->left, target, depth + 1);
+        int rightDepth = getNodeDepth(root->right, target, depth + 1);
+
+        if (leftDepth == -1 && rightDepth == -1) {
+            return -1; // Nó não encontrado em nenhum dos lados
+        } else {
+            return (leftDepth != -1) ? leftDepth : rightDepth;
+        }
+    }
+}
+
+int countChildren(Node* node) {
+    int count = 0;
+    if (node->left != NULL) {
+        count++;
+    }
+    if (node->right != NULL) {
+        count++;
+    }
+    return count;
+}
+
+int getTreeDegree(Node* root) {
+    if (root == NULL) {
+        return 0;
+    } else {
+        int leftDegree = getTreeDegree(root->left);
+        int rightDegree = getTreeDegree(root->right);
+        return max(max(leftDegree, rightDegree), countChildren(root));
+    }
+}
+
+
+int getNodeDegree(Node* node) {
+    int degree = 0;
+
+    if (node->left != NULL) {
+        degree++;
+    }
+    if (node->right != NULL) {
+        degree++;
+    }
+
+    return degree;
+}
+
+
+Node* findNodeWithMaxDegree(Node* root) {
+    if (root == NULL) {
+        return NULL;
+    }
+
+    Node* maxDegreeNode = root;
+    int maxDegree = getNodeDegree(root);
+
+    Node* leftMaxDegreeNode = findNodeWithMaxDegree(root->left);
+    int leftMaxDegree = (leftMaxDegreeNode != NULL) ? getNodeDegree(leftMaxDegreeNode) : 0;
+
+    Node* rightMaxDegreeNode = findNodeWithMaxDegree(root->right);
+    int rightMaxDegree = (rightMaxDegreeNode != NULL) ? getNodeDegree(rightMaxDegreeNode) : 0;
+
+    if (leftMaxDegree > maxDegree) {
+        maxDegreeNode = leftMaxDegreeNode;
+        maxDegree = leftMaxDegree;
+    }
+
+    if (rightMaxDegree > maxDegree) {
+        maxDegreeNode = rightMaxDegreeNode;
+        maxDegree = rightMaxDegree;
+    }
+
+    return maxDegreeNode;
+}
+
+int getDiameter(Node* root) {
+    if (root == NULL) {
+        return 0;
+    }
+
+    int leftHeight = getHeight(root->left);
+    int rightHeight = getHeight(root->right);
+
+    int leftDiameter = getDiameter(root->left);
+    int rightDiameter = getDiameter(root->right);
+
+    return max(max(leftDiameter, rightDiameter), leftHeight + rightHeight);
+}
+
+void preOrderTraversal(Node* root) {
+    if (root != NULL) {
+        printf("%d ", root->data);  // Visita o nó raiz
+        preOrderTraversal(root->left);  // Percorre a subárvore esquerda
+        preOrderTraversal(root->right);  // Percorre a subárvore direita
+    }
+}
+
+void postOrderTraversal(Node* root) {
+    if (root != NULL) {
+        postOrderTraversal(root->left);  // Percorre a subárvore esquerda
+        postOrderTraversal(root->right);  // Percorre a subárvore direita
+        printf("%d ", root->data);  // Visita o nó raiz
+    }
+}
+
+typedef struct QueueNode {
+    Node* data;
+    struct QueueNode* next;
+} QueueNode;
+
+typedef struct Queue {
+    QueueNode* front;
+    QueueNode* rear;
+} Queue;
+
+Queue* createQueue() {
+    Queue* queue = (Queue*)malloc(sizeof(Queue));
+    queue->front = NULL;
+    queue->rear = NULL;
+    return queue;
+}
+
+int isqueueEmpty(Queue* queue) {
+    return (queue->front == NULL && queue->rear == NULL);
+}
+
+void enqueue(Queue* queue, Node* data) {
+    QueueNode* newNode = (QueueNode*)malloc(sizeof(QueueNode));
+    newNode->data = data;
+    newNode->next = NULL;
+
+    if (queue->rear == NULL) {
+        queue->front = newNode;
+        queue->rear = newNode;
+    } else {
+        queue->rear->next = newNode;
+        queue->rear = newNode;
+    }
+}
+
+Node* dequeue(Queue* queue) {
+    if (isqueueEmpty(queue)) {
+        return NULL;
+    }
+
+    QueueNode* temp = queue->front;
+    Node* data = temp->data;
+
+    queue->front = queue->front->next;
+    if (queue->front == NULL) {
+        queue->rear = NULL;
+    }
+
+    free(temp);
+    return data;
+}
+
+void breadthFirstTraversal(Node* root) {
+    if (root == NULL) {
+        return;
+    }
+
+    Queue* queue = createQueue();
+    enqueue(queue, root);  // Insere o nó raiz na fila
+
+    while (!isqueueEmpty(queue)) {
+        Node* currentNode = dequeue(queue);  // Remove o nó da frente da fila
+        printf("%d ", currentNode->data);  // Visita o nó atual
+
+        if (currentNode->left != NULL) {
+            enqueue(queue, currentNode->left);  // Insere o filho esquerdo na fila
+        }
+
+        if (currentNode->right != NULL) {
+            enqueue(queue, currentNode->right);  // Insere o filho direito na fila
+        }
+    }
+
+    free(queue);
+}
+
+int main() {
+    Node* root = NULL;
+
+    // Verificação se a árvore está vazia
+    if (isEmpty(root)) {
+        printf("A árvore está vazia. Ela começa vazia.\n");
+    } else {
+        printf("A árvore não está vazia.\n");
+    }
+
+    // Inserção de elementos na árvore
+    root = insertNode(root, 50);
+    root = insertNode(root, 30);
+    root = insertNode(root, 20);
+    root = insertNode(root, 40);
+    root = insertNode(root, 70);
+    root = insertNode(root, 60);
+    root = insertNode(root, 80);
+
+    printf("Árvore Binária (inorder traversal): ");
+    inorderTraversal(root);
+    printf("\n");
+
+    // Remoção de um nó da árvore
+    root = removeNode(root, 30);
+
+    printf("Árvore Binária após a remoção do nó 30 (inorder traversal): ");
+    inorderTraversal(root);
+    printf("\n");
+
+    // Verificação se a árvore está vazia
+    if (isEmpty(root)) {
+        printf("A árvore está vazia.\n");
+    } else {
+        printf("A árvore não está vazia.\n");
+    }
+
+    // Pesquisa por um nó na árvore
+    int key = 40;
+    Node* searchResult = searchNode(root, key);
+    if (searchResult != NULL) {
+        printf("O nó com valor %d foi encontrado na árvore.\n", key);
+    } else {
+        printf("O nó com valor %d não foi encontrado na árvore.\n", key);
+    }
+
+    // Cálculo da altura da árvore
+    int height = getHeight(root);
+    printf("Altura da árvore: %d\n", height);
+
+    // Obtenção da altura do nó 40
+    int nodeHeight = getNodeHeight(root, 40);
+    if (nodeHeight != -1) {
+        printf("Altura do nó 40: %d\n", nodeHeight);
+    } else {
+        printf("Nó 40 não encontrado na árvore.\n");
+    }
+
+    printf("Profundidade da árvore: E a mesma da altura supracitada.\n");
+
+    // Obtenção da profundidade e nivel do nó 40
+    int nodeDepth = getNodeDepth(root, 40, 0);
+    if (nodeDepth != -1) {
+        printf("Profundidade do nó 40: %d\n", nodeDepth);
+        printf("Nivel do nó 40: %d\n", nodeDepth);
+    } else {
+        printf("Nó 40 não encontrado na árvore.\n");
+    }
+
+    // Obtenção do grau da árvore
+    int treeDegree = getTreeDegree(root);
+    printf("Grau da árvore: %d\n", treeDegree);
+
+    // Obtenção do grau do nó 2
+    Node* targetNode = root->left;
+    int nodeDegree = getNodeDegree(targetNode);
+    printf("Grau do nó %d: %d\n", targetNode->data, nodeDegree);
+
+    
+    // Encontrar o nó de maior grau
+    Node* maxDegreeNode = findNodeWithMaxDegree(root);
+    int maxDegree = getNodeDegree(maxDegreeNode);
+
+    printf("Nó de maior grau: %d\n", maxDegreeNode->data);
+    printf("Grau: %d\n", maxDegree);
+
+    
+    // Cálculo do diâmetro da árvore
+    int diameter = getDiameter(root);
+
+    printf("Diâmetro da árvore: %d\n", diameter);
+
+    // Percorre a árvore em pré-ordem
+    printf("Percorrer em pré-ordem: ");
+    preOrderTraversal(root);
+    printf("\n");
+    // imprime o valor do nó raiz, percorre a subárvore esquerda, percorre a subárvore direita.
+
+    // Percorre a árvore em pós-ordem
+    printf("Percorrer em pós-ordem: ");
+    postOrderTraversal(root);
+    printf("\n");
+    // percorrer a subárvore esquerda, em seguida, subárvore direita e imprime o valor do nó raiz.
+
+    // Percorre em ordem
+    printf("Árvore Binária (inorder traversal): ");
+    inorderTraversal(root);
+    printf("\n");
+    //percorrer a subárvore esquerda,imprime o valor do nó raiz, percorre a subárvore direita
+
+    // Percorre a árvore em largura
+    printf("Percorrer em largura: ");
+    breadthFirstTraversal(root);
+    printf("\n");
+
+    printf("Percorrer em ordem, pós-ordem ou pre-ordem é percorrer em profundidade. \n");
+
+
+    // Liberar memória da árvore
+    freeTree(root);
+
+    return 0;
+}
